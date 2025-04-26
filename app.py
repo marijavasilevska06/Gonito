@@ -26,14 +26,15 @@ class AdminUser(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
-# Читање на производи од Excel
+# Читање Excel
 def load_products():
     try:
         df = pd.read_excel("products.xlsx")
         for _, row in df.iterrows():
             if pd.isnull(row["Шифра"]) or pd.isnull(row["Име на артикал"]) or pd.isnull(row["Продажна цена"]):
                 continue
-            if not Product.query.filter_by(barcode=str(row["Шифра"])).first():
+            existing_product = Product.query.filter_by(barcode=str(row["Шифра"])).first()
+            if not existing_product:
                 new_product = Product(
                     barcode=str(row["Шифра"]),
                     name=row["Име на артикал"],
