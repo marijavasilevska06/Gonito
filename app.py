@@ -19,7 +19,7 @@ class Product(db.Model):
     barcode = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    discount_price = db.Column(db.Float, nullable=True, default=0.0)
+    discount_price = db.Column(db.Float, nullable=True)  # Може да биде NULL без проблем
 
 class AdminUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,15 +38,15 @@ def load_products():
                 new_product = Product(
                     barcode=str(row["Шифра"]),
                     name=row["Име на артикал"],
-                    price=row["Продажна цена"],
-                    discount_price=0.0
+                    price=float(row["Продажна цена"]),
+                    discount_price=None
                 )
                 db.session.add(new_product)
         db.session.commit()
     except Exception as e:
-        print(f"Error while loading products: {e}")
+        print(f"Error loading products: {e}")
 
-# User-facing routes
+# User Routes
 @app.route("/", methods=["GET"])
 def index():
     search = request.args.get("search", "").strip()
@@ -73,16 +73,16 @@ def login():
             flash("Successfully logged in!", "success")
             return redirect("/admin")
         else:
-            flash("Invalid login credentials.", "danger")
+            flash("Invalid credentials", "danger")
     return render_template("login.html", year=datetime.now().year)
 
 @app.route("/logout")
 def logout():
     session.pop("admin", None)
-    flash("Successfully logged out.", "info")
+    flash("Logged out successfully", "info")
     return redirect("/")
 
-# Admin panel view
+# Admin Panel
 class SecureModelView(ModelView):
     form_columns = ['barcode', 'name', 'price', 'discount_price']
 
@@ -95,7 +95,7 @@ class SecureModelView(ModelView):
 admin = Admin(app, name='Market Gonito Admin', template_mode='bootstrap3')
 admin.add_view(SecureModelView(Product, db.session))
 
-# Initialize the app
+# Setup
 def setup_app():
     db.create_all()
     if not AdminUser.query.first():
