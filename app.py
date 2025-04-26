@@ -9,11 +9,11 @@ import pandas as pd
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'your_secret_key'
+app.secret_key = 'your_secret_key'  # Use a strong secret key for production
 
 db = SQLAlchemy(app)
 
-# Модели
+# Models
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     barcode = db.Column(db.String(20), unique=True, nullable=False)
@@ -26,13 +26,14 @@ class AdminUser(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
-# Читање Excel
+# Load Products from Excel
 def load_products():
     try:
         df = pd.read_excel("products.xlsx")
         for _, row in df.iterrows():
+            # Check if required fields are available
             if pd.isnull(row["Шифра"]) or pd.isnull(row["Име на артикал"]) or pd.isnull(row["Продажна цена"]):
-                continue
+                continue  # Skip if any required field is missing
             existing_product = Product.query.filter_by(barcode=str(row["Шифра"])).first()
             if not existing_product:
                 new_product = Product(
@@ -43,9 +44,9 @@ def load_products():
                 db.session.add(new_product)
         db.session.commit()
     except Exception as e:
-        print(f"Грешка при вчитување на производи: {e}")
+        print(f"Error while loading products: {e}")
 
-# Кориснички дел
+# User-facing routes
 @app.route("/", methods=["GET"])
 def index():
     search = request.args.get("search", "").strip()
@@ -60,7 +61,7 @@ def index():
     products = query.all()
     return render_template("index.html", products=products, search=search, akcija=akcija, year=datetime.now().year)
 
-# Најава
+# Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -69,33 +70,33 @@ def login():
         user = AdminUser.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session["admin"] = user.id
-            flash("Успешно најавување!", "success")
+            flash("Successfully logged in!", "success")
             return redirect("/admin")
         else:
-            flash("Неточни податоци за најавување.", "danger")
+            flash("Invalid login credentials.", "danger")
     return render_template("login.html", year=datetime.now().year)
 
 @app.route("/logout")
 def logout():
     session.pop("admin", None)
-    flash("Сте се одјавиле успешно.", "info")
+    flash("Successfully logged out.", "info")
     return redirect("/")
 
-# Админ панел
+# Admin panel view
 class SecureModelView(ModelView):
     def is_accessible(self):
-        return "admin" in session
+        return "admin" in session  # Ensure only logged-in admins can access
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Redirect to login if not authenticated
 
 admin = Admin(app, name='Market Gonito Admin', template_mode='bootstrap3')
-admin.add_view(SecureModelView(Product, db.session))
+admin.add_view(SecureModelView(Product, db.session))  # Register Product model in admin
 
-# Иницијализација
+# Initialize the app
 def setup_app():
     db.create_all()
-    # Додавање на default admin ако нема
+    # Add a default admin user if none exists
     if not AdminUser.query.first():
         admin_user = AdminUser(
             username="admin",
@@ -103,9 +104,9 @@ def setup_app():
         )
         db.session.add(admin_user)
         db.session.commit()
-    load_products()
+    load_products()  # Load products from the Excel file
 
 if __name__ == "__main__":
     with app.app_context():
-        setup_app()
+        setup_app()  # Set up the database and products
     app.run(debug=True)
