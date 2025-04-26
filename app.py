@@ -19,7 +19,7 @@ class Product(db.Model):
     barcode = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    discount_price = db.Column(db.Float, nullable=True)
+    discount_price = db.Column(db.Float, nullable=True,default=None)
 
 class AdminUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,7 +94,10 @@ admin = Admin(app, name='Market Gonito Admin', template_mode='bootstrap3')
 admin.add_view(SecureModelView(Product, db.session))  # Register Product model in admin
 
 # Initialize the app
+
+
 def setup_app():
+    db.drop_all()
     db.create_all()
     # Add a default admin user if none exists
     if not AdminUser.query.first():
