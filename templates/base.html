@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+    <meta charset="UTF-8">
+    <title>Market Gonito</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <nav class="bg-blue-600 p-4 text-white flex justify-between items-center">
+        <a href="/" class="font-bold text-xl">Market Gonito</a>
+        <div>
+            {% if session.get('admin') %}
+                <a href="/admin" class="mr-4">Админ</a>
+                <a href="/logout" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded">Одјава</a>
+            {% else %}
+                <a href="/login" class="bg-green-500 hover:bg-green-600 px-3 py-1 rounded">Најава</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    
+    
+    
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        &copy; {{ year }} Market Gonito - Сите права се задржани.
+    </footer>
+
+</body>
+</html>

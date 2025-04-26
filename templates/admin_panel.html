@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Админ Панел - Market Gonito{% endblock %}
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-6">Админ Панел</h1>
+
+<a href="{{ url_for('add_product') }}" class="bg-green-600 text-white px-4 py-2 rounded mb-6 inline-block">+ Додај нов производ</a>
+
+<div class="grid md:grid-cols-2 gap-6">
+    {% for product in products %}
+    <nav class="bg-blue-600 p-4 text-white flex justify-between items-center">
+        <a href="/" class="font-bold text-xl">Market Gonito</a>
+        <div>
+            {% if session.get('admin') %}
+                <a href="/admin" class="mr-4">Админ</a>
+                <a href="/logout" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded">Одјава</a>
+            {% else %}
+                <a href="/login" class="bg-green-500 hover:bg-green-600 px-3 py-1 rounded">Најава</a>
+            {% endif %}
+        </div>
+    </nav>
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+            <p>Баркод: {{ product.barcode }}</p>
+            <p>Цена: {{ product.price }} ден.</p>
+            {% if product.discount_price %}
+                <p>Акциска цена: {{ product.discount_price }} ден.</p>
+            {% endif %}
+            <div class="flex space-x-4 mt-4">
+                <a href="{{ url_for('edit_product', product_id=product.id) }}" class="bg-yellow-400 px-3 py-1 rounded">Измени</a>
+                <a href="{{ url_for('delete_product', product_id=product.id) }}" class="bg-red-500 text-white px-3 py-1 rounded" onclick="return confirm('Дали сте сигурни?')">Избриши</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

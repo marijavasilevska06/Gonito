@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-4">Цени на производи</h1>
+
+    <form method="get" class="mb-6 flex flex-wrap gap-2">
+        <input type="text" name="search" value="{{ search }}" placeholder="Барај производ..." class="p-2 border rounded flex-1">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Пребарај</button>
+        <a href="/?akcija=1" class="bg-green-600 text-white px-4 py-2 rounded">Акциски производи</a>
+        <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded">Сите производи</a>
+    </form>
+
+    <div class="grid md:grid-cols-2 gap-4">
+        {% for product in products %}
+            <div class="bg-white p-4 rounded shadow">
+                <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+                {% if product.discount_price %}
+                    <p class="text-gray-500 line-through">Стара цена: {{ product.price }} ден.</p>
+                    <p class="text-green-600 font-bold mt-2">Акциска цена: {{ product.discount_price }} ден.</p>
+                {% else %}
+                    <p class="text-green-600 font-bold mt-2">Цена: {{ product.price }} ден.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>Нема производи што одговараат на критериумот.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

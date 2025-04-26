@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Додај Производ - Market Gonito{% endblock %}
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-6">Додај нов производ</h1>
+
+<form method="post" class="space-y-4 max-w-md">
+    <div>
+        <label>Баркод:</label>
+        <input type="text" name="barcode" class="w-full p-2 border rounded" required>
+    </div>
+    <div>
+        <label>Име на производ:</label>
+        <input type="text" name="name" class="w-full p-2 border rounded" required>
+    </div>
+    <div>
+        <label>Цена:</label>
+        <input type="number" name="price" step="0.01" class="w-full p-2 border rounded" required>
+    </div>
+    <div>
+        <label>Акциска цена (опционално):</label>
+        <input type="number" name="discount_price" step="0.01" class="w-full p-2 border rounded">
+    </div>
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Зачувај</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Акциски производи - Market Gonito{% endblock %}
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-4">Акциски производи</h1>
+
+<div class="grid md:grid-cols-2 gap-6">
+    {% for product in products %}
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+            <p class="text-gray-500 line-through">Цена: {{ product.price }} ден.</p>
+            <p class="text-green-600 font-bold">Акциска цена: {{ product.discount_price }} ден.</p>
+        </div>
+    {% else %}
+        <p>Нема производи на акција.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
