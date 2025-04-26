@@ -9,7 +9,7 @@ import pandas as pd
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'your_secret_key'  # Use a strong secret key for production
+app.secret_key = 'your_secret_key'
 
 db = SQLAlchemy(app)
 
@@ -19,7 +19,7 @@ class Product(db.Model):
     barcode = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    discount_price = db.Column(db.Float, nullable=True,default=None)
+    discount_price = db.Column(db.Float, nullable=True, default=0.0)
 
 class AdminUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,15 +31,15 @@ def load_products():
     try:
         df = pd.read_excel("products.xlsx")
         for _, row in df.iterrows():
-            # Check if required fields are available
             if pd.isnull(row["Шифра"]) or pd.isnull(row["Име на артикал"]) or pd.isnull(row["Продажна цена"]):
-                continue  # Skip if any required field is missing
+                continue
             existing_product = Product.query.filter_by(barcode=str(row["Шифра"])).first()
             if not existing_product:
                 new_product = Product(
                     barcode=str(row["Шифра"]),
                     name=row["Име на артикал"],
-                    price=row["Продажна цена"]
+                    price=row["Продажна цена"],
+                    discount_price=0.0
                 )
                 db.session.add(new_product)
         db.session.commit()
@@ -51,12 +51,12 @@ def load_products():
 def index():
     search = request.args.get("search", "").strip()
     akcija = request.args.get("akcija", "")
-    
+
     query = Product.query
     if search:
         query = query.filter(Product.name.ilike(f"%{search}%"))
     if akcija == "1":
-        query = query.filter(Product.discount_price.isnot(None))
+        query = query.filter(Product.discount_price.isnot(None), Product.discount_price < Product.price)
 
     products = query.all()
     return render_template("index.html", products=products, search=search, akcija=akcija, year=datetime.now().year)
@@ -84,22 +84,20 @@ def logout():
 
 # Admin panel view
 class SecureModelView(ModelView):
+    form_columns = ['barcode', 'name', 'price', 'discount_price']
+
     def is_accessible(self):
-        return "admin" in session  # Ensure only logged-in admins can access
+        return "admin" in session
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))  # Redirect to login if not authenticated
+        return redirect(url_for('login'))
 
 admin = Admin(app, name='Market Gonito Admin', template_mode='bootstrap3')
-admin.add_view(SecureModelView(Product, db.session))  # Register Product model in admin
+admin.add_view(SecureModelView(Product, db.session))
 
 # Initialize the app
-
-
 def setup_app():
-    db.drop_all()
     db.create_all()
-    # Add a default admin user if none exists
     if not AdminUser.query.first():
         admin_user = AdminUser(
             username="admin",
@@ -107,9 +105,9 @@ def setup_app():
         )
         db.session.add(admin_user)
         db.session.commit()
-    load_products()  # Load products from the Excel file
+    load_products()
 
 if __name__ == "__main__":
     with app.app_context():
-        setup_app()  # Set up the database and products
+        setup_app()
     app.run(debug=True)
